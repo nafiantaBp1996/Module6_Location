@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/image_map"
+            android:padding="40dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:src="@drawable/search"
+            android:layout_weight="7"
+            />
+        <TextView
+            android:id="@+id/text_location"
+            android:padding="30dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="3.36"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:text="Tekan Button dibawah ini untuk mendapatkan lokasi anda"
+            android:textAlignment="center"/>
+        <Button
+            android:id="@+id/btn_picker"
+            android:layout_marginRight="30dp"
+            android:layout_marginLeft="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="1"
+            android:text="Select Place"
+            android:shadowColor="@color/colorAccent"
+            android:background="@color/colorPrimary"
+            android:textColor="@android:color/white"
+            />
+        <Button
+            android:id="@+id/btn_location"
+            android:layout_marginRight="30dp"
+            android:layout_marginLeft="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="1"
+            android:text="I will Find You"
+            android:shadowColor="@color/colorAccent"
+            android:background="@color/colorPrimary"
+            android:textColor="@android:color/white"
+            />
+        <Button
+            android:id="@+id/btn_address"
+            android:layout_marginRight="30dp"
+            android:layout_marginLeft="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="1"
+            android:text="I get Your Address"
+            android:shadowColor="@color/colorAccent"
+            android:background="@color/colorPrimary"
+            android:textColor="@android:color/white"
+            />
+        <Button
+            android:id="@+id/btn_tracking"
+            android:layout_marginRight="30dp"
+            android:layout_marginLeft="30dp"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginBottom="15dp"
+            android:layout_weight="1"
+            android:text="I Track You"
+            android:shadowColor="@color/colorAccent"
+            android:background="@color/colorPrimary"
+            android:textColor="@android:color/white"
+            />
+    </LinearLayout>
+</RelativeLayout>

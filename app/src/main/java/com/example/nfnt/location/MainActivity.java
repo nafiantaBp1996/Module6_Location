@@ -40,6 +40,11 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
 
     private static final int GOOGLE_API_CLIENT_ID = 0;
     private static final int REQUEST_PICK_PLACE = 0;
+
+    private static String NAME_PLACE ="" ;
+    private static String ADDRESS_PLACE = "";
+    private static int IMG_PLACE=-1;
+
     private PlaceDetectionApi myPlaceDetecttionApi;
     private String myPlace;
     private GoogleApiClient googleApiClient;
@@ -54,6 +59,22 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     private LocationCallback myLocCallback;
     private FusedLocationProviderClient mFusedLocation;
     private boolean mytrackingLoc;
+
+    @Override
+    protected void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("placeName",NAME_PLACE);
+        savedInstanceState.putString("placeAddress",ADDRESS_PLACE);
+        savedInstanceState.putInt("placeImage",IMG_PLACE);
+
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        textLocation.setText(getString(R.string.address_text,savedInstanceState.getString("placeName"),savedInstanceState.getString("placeAddress"), System.currentTimeMillis()));
+        myAnimImageView.setImageResource(savedInstanceState.getInt("placeImage"));
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +97,8 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
         mFusedLocation = LocationServices.getFusedLocationProviderClient(this);
         myRotateAnim = (AnimatorSet) AnimatorInflater.loadAnimator(this,R.animator.rotate);
         myRotateAnim.setTarget(myAnimImageView);
+
+
 
         myLocCallback = new LocationCallback()
         {
@@ -135,8 +158,11 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
         if(resultCode == RESULT_OK)
         {
             Place place = PlacePicker.getPlace(this,data);
-            setTypeLocation(place);
             textLocation.setText(getString(R.string.address_text,place.getName(),place.getAddress(), System.currentTimeMillis()));
+            NAME_PLACE = place.getName().toString();
+            ADDRESS_PLACE = place.getAddress().toString();
+            IMG_PLACE = setTypeLocation(place);
+            myAnimImageView.setImageResource(IMG_PLACE);
         }
         else
         {
@@ -248,8 +274,11 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 @Override
                 public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
                     for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
-                        textLocation.setText(getString(R.string.address_text,placeLikelihood.getPlace().getName().toString(),alamat, System.currentTimeMillis()));
-                        setTypeLocation(placeLikelihood.getPlace());
+                        textLocation.setText(getString(R.string.address_text,placeLikelihood.getPlace().getName(),placeLikelihood.getPlace().getAddress(), System.currentTimeMillis()));
+                        NAME_PLACE = placeLikelihood.getPlace().getName().toString();
+                        ADDRESS_PLACE = placeLikelihood.getPlace().getAddress().toString();
+                        IMG_PLACE = setTypeLocation(placeLikelihood.getPlace());
+                        myAnimImageView.setImageResource(IMG_PLACE);
                     }
                     placeLikelihoods.release();
                 }
@@ -287,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 Toast.LENGTH_LONG).show();
     }
 
-    private  void setTypeLocation(Place currentPlace)
+    private int setTypeLocation(Place currentPlace)
     {
         int drawId = -1;
         for (Integer placeType : currentPlace.getPlaceTypes())
@@ -311,7 +340,9 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
             {
                 drawId=R.drawable.notfound;
             }
-            myAnimImageView.setImageResource(drawId);
         }
+
+        return drawId;
     }
 }
+
