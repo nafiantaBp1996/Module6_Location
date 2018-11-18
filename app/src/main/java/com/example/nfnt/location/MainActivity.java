@@ -17,6 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -25,22 +27,25 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceDetectionApi;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity implements GetAddress.onTaskDone, GoogleApiClient.OnConnectionFailedListener {
 
     private static final int GOOGLE_API_CLIENT_ID = 0;
+    private static final int REQUEST_PICK_PLACE = 0;
     private PlaceDetectionApi myPlaceDetecttionApi;
     private String myPlace;
     private GoogleApiClient googleApiClient;
 
     private static final int REQUEST_LOCATION =1 ;
 
-    Button btnFindLoc,btnFindAddress,btnTracking;
+    Button btnFindLoc,btnFindAddress,btnTracking,btnPicker;
     TextView textLocation;
     private AnimatorSet myRotateAnim;
     private Location myLocation;
@@ -64,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
         btnFindAddress = (Button) findViewById(R.id.btn_address);
         textLocation = (TextView) findViewById(R.id.text_location);
         btnTracking = (Button) findViewById(R.id.btn_tracking);
+        btnPicker = (Button) findViewById(R.id.btn_picker);
+        btnFindLoc.setVisibility(View.GONE);
+        btnFindAddress.setVisibility(View.GONE);
         mFusedLocation = LocationServices.getFusedLocationProviderClient(this);
         myRotateAnim = (AnimatorSet) AnimatorInflater.loadAnimator(this,R.animator.rotate);
         myRotateAnim.setTarget(myAnimImageView);
@@ -101,6 +109,20 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 else
                 {
                     stopTracking();
+                }
+            }
+        });
+
+        btnPicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PlacePicker.IntentBuilder pickBuild = new PlacePicker.IntentBuilder();
+                try {
+                    startActivityForResult(pickBuild.build(MainActivity.this),REQUEST_PICK_PLACE);
+                }
+                catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e)
+                {
+                    e.printStackTrace();
                 }
             }
         });
@@ -169,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
         {
             Log.d("GET_PERMISSION","getlocation: permission are granted");
             mFusedLocation.requestLocationUpdates(getLocation(),myLocCallback,null);
-            textLocation.setText(getString(R.string.address_text,"Find Your Address", System.currentTimeMillis()));
+            textLocation.setText("find your location");
             mytrackingLoc = true;
             btnTracking.setText("Stop Tracking");
             myRotateAnim.start();
@@ -212,6 +234,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
                     for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
                         textLocation.setText(getString(R.string.address_text,placeLikelihood.getPlace().getName().toString(),alamat, System.currentTimeMillis()));
+                        setTypeLocation(placeLikelihood.getPlace());
                     }
                     placeLikelihoods.release();
                 }
@@ -247,5 +270,33 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 "Google Places API connection failed with error code:" +
                         connectionResult.getErrorCode(),
                 Toast.LENGTH_LONG).show();
+    }
+
+    private  void setTypeLocation(Place currentPlace)
+    {
+        int drawId = -1;
+        for (Integer placeType : currentPlace.getPlaceTypes())
+        {
+            switch (placeType)
+            {
+                case  Place.TYPE_UNIVERSITY:
+                    drawId= R.drawable.school;
+                    break;
+                case  Place.TYPE_CAFE:
+                    drawId= R.drawable.coffeeshop;
+                    break;
+                case  Place.TYPE_SHOPPING_MALL:
+                    drawId= R.drawable.mall;
+                    break;
+                case  Place.TYPE_MOVIE_THEATER:
+                    drawId= R.drawable.cinema;
+                    break;
+            }
+            if(drawId<0)
+            {
+                drawId=R.drawable.notfound;
+            }
+            myAnimImageView.setImageResource(drawId);
+        }
     }
 }
