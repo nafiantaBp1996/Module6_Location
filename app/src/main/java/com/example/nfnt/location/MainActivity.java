@@ -3,6 +3,7 @@ package com.example.nfnt.location;
 import android.Manifest;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -127,6 +128,20 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
             }
         });
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(resultCode == RESULT_OK)
+        {
+            Place place = PlacePicker.getPlace(this,data);
+            setTypeLocation(place);
+            textLocation.setText(getString(R.string.address_text,place.getName(),place.getAddress(), System.currentTimeMillis()));
+        }
+        else
+        {
+            textLocation.setText("Location Not Selected");
+        }
     }
 
     private void getadress() {
