@@ -37,6 +37,8 @@ public class GetAddress extends AsyncTask<Location,Void,String> {
         List<Address> alamat = null;
         String resultMsg = "";
 
+
+
         try {
             alamat=geocoder.getFromLocation(location.getLatitude(),location.getLongitude(),1);
 

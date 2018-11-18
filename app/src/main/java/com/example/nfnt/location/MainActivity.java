@@ -16,14 +16,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.PlaceDetectionApi;
+import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-public class MainActivity extends AppCompatActivity implements GetAddress.onTaskDone{
+public class MainActivity extends AppCompatActivity implements GetAddress.onTaskDone, GoogleApiClient.OnConnectionFailedListener {
+
+    private static final int GOOGLE_API_CLIENT_ID = 0;
+    private PlaceDetectionApi myPlaceDetecttionApi;
+    private String myPlace;
+    private GoogleApiClient googleApiClient;
 
     private static final int REQUEST_LOCATION =1 ;
 
@@ -39,6 +52,11 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        googleApiClient = new GoogleApiClient.Builder(MainActivity.this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API).enableAutoManage(this, GOOGLE_API_CLIENT_ID,this)
+                .build();
 
         myAnimImageView = (ImageView) findViewById(R.id.image_map);
 
@@ -112,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 }
             });
         }
-        textLocation.setText(getString(R.string.address_text,"System Search Your Address", System.currentTimeMillis()));
+        textLocation.setText("Find Your Address");
     }
     private void getlocation() {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)!= PackageManager.PERMISSION_GRANTED)
@@ -183,10 +201,33 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     }
 
     @Override
-    public void onTaskCompleted(String result) {
+    public void onTaskCompleted(String result) throws SecurityException{
         //textLocation.setText(result);
-        textLocation.setText(getString(R.string.address_text,result, System.currentTimeMillis()));
+        final String alamat = result;
+    //    if (mytrackingLoc)
+    //    {
+            PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi.getCurrentPlace(googleApiClient, null);
+            placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
+                @Override
+                public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
+                    for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
+                        textLocation.setText(getString(R.string.address_text,placeLikelihood.getPlace().getName().toString(),alamat, System.currentTimeMillis()));
+                    }
+                    placeLikelihoods.release();
+                }
+            });
+
+            //textLocation.setText(getString(R.string.address_text,result,result,System.currentTimeMillis()));
+        //  }
     }
+
+
+
+//    @Override
+//    public void onTaskCompleted(String result){
+//        //textLocation.setText(result);
+//            textLocation.setText(getString(R.string.address_text,result,result, System.currentTimeMillis()));
+//    }
 
     private LocationRequest getLocation()
     {
@@ -195,5 +236,16 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
         locationReq.setFastestInterval(5000);
         locationReq.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return locationReq;
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Log.e("CON_API", "Google Places API connection failed with error code: "
+                + connectionResult.getErrorCode());
+
+        Toast.makeText(this,
+                "Google Places API connection failed with error code:" +
+                        connectionResult.getErrorCode(),
+                Toast.LENGTH_LONG).show();
     }
 }
