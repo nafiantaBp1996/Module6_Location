@@ -29,7 +29,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceDetectionApi;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
@@ -38,16 +37,14 @@ import com.google.android.gms.tasks.OnSuccessListener;
 
 public class MainActivity extends AppCompatActivity implements GetAddress.onTaskDone, GoogleApiClient.OnConnectionFailedListener {
 
-    private static final int GOOGLE_API_CLIENT_ID = 0;
-    private static final int REQUEST_PICK_PLACE = 0;
+    private static final int GOOGLE_API_CLIENT_ID = 0; //Static var untuk googleApi Client
+    private static final int REQUEST_PICK_PLACE = 0; //Static variabel untu intent builder place
 
-    private static String NAME_PLACE ="" ;
-    private static String ADDRESS_PLACE = "";
-    private static int IMG_PLACE=-1;
+    private static String NAME_PLACE ="" ;//static variabel untuk digunakan sebagai instance save agar saat berubah rotasi tidak hilang data sebelumnya
+    private static String ADDRESS_PLACE = "";//static variabel untuk digunakan sebagai instance save agar saat berubah rotasi tidak hilang data sebelumnya
+    private static int IMG_PLACE=-1;//static variabel untuk digunakan sebagai instance save agar saat berubah rotasi tidak hilang data sebelumnya
 
-    private PlaceDetectionApi myPlaceDetecttionApi;
-    private String myPlace;
-    private GoogleApiClient googleApiClient;
+    private GoogleApiClient googleApiClient; // object yang digunakan untuk mendapatkan API client
 
     private static final int REQUEST_LOCATION =1 ;
 
@@ -61,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     private boolean mytrackingLoc;
 
     @Override
-    protected void onSaveInstanceState(Bundle savedInstanceState) {
+    protected void onSaveInstanceState(Bundle savedInstanceState) { //function digunakan agar data dari alamat sebelumnya disimpan ke dalaman Save Instance State
         super.onSaveInstanceState(savedInstanceState);
         savedInstanceState.putString("placeName",NAME_PLACE);
         savedInstanceState.putString("placeAddress",ADDRESS_PLACE);
@@ -70,11 +67,19 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(Bundle savedInstanceState) { // function digunakn saat merestore data yang ada dalam Instancestate kedalam object yandg ditentukan
         super.onRestoreInstanceState(savedInstanceState);
-        textLocation.setText(getString(R.string.address_text,savedInstanceState.getString("placeName"),savedInstanceState.getString("placeAddress"), System.currentTimeMillis()));
-        myAnimImageView.setImageResource(savedInstanceState.getInt("placeImage"));
-    }
+        if(savedInstanceState.getString("placeName")=="")
+        {
+            textLocation.setText("Tekan Button dibawah ini untuk mendapatkan lokasi anda");
+        }
+        else
+            {
+                textLocation.setText(getString(R.string.address_text,savedInstanceState.getString("placeName"),savedInstanceState.getString("placeAddress"), System.currentTimeMillis()));
+                myAnimImageView.setImageResource(savedInstanceState.getInt("placeImage"));
+
+            }
+     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
         googleApiClient = new GoogleApiClient.Builder(MainActivity.this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API).enableAutoManage(this, GOOGLE_API_CLIENT_ID,this)
-                .build();
+                .build();//deklarasi GoogleApiClient untuk mendapatkan API client
 
         myAnimImageView = (ImageView) findViewById(R.id.image_map);
 
@@ -137,12 +142,12 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
             }
         });
 
-        btnPicker.setOnClickListener(new View.OnClickListener() {
+        btnPicker.setOnClickListener(new View.OnClickListener() {//function dijalankan untuk Intent builder place picker, intent untuk membuka halaman map berisi tempat tempat nanti akan muncul
             @Override
             public void onClick(View v) {
-                PlacePicker.IntentBuilder pickBuild = new PlacePicker.IntentBuilder();
+                PlacePicker.IntentBuilder pickBuild = new PlacePicker.IntentBuilder();//create PlacePicker Activity
                 try {
-                    startActivityForResult(pickBuild.build(MainActivity.this),REQUEST_PICK_PLACE);
+                    startActivityForResult(pickBuild.build(MainActivity.this),REQUEST_PICK_PLACE); // menjalankan PlacePicker Activity
                 }
                 catch (GooglePlayServicesRepairableException | GooglePlayServicesNotAvailableException e)
                 {
@@ -155,18 +160,18 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(resultCode == RESULT_OK)
+        if(resultCode == RESULT_OK)// jika hasil dari placePicket builder adalah OK
         {
-            Place place = PlacePicker.getPlace(this,data);
-            textLocation.setText(getString(R.string.address_text,place.getName(),place.getAddress(), System.currentTimeMillis()));
-            NAME_PLACE = place.getName().toString();
-            ADDRESS_PLACE = place.getAddress().toString();
-            IMG_PLACE = setTypeLocation(place);
+            Place place = PlacePicker.getPlace(this,data); // masukan data dari hasil PlacePicker Builder kedalam object Place
+            textLocation.setText(getString(R.string.address_text,place.getName(),place.getAddress(), System.currentTimeMillis())); // update nama location text
+            NAME_PLACE = place.getName().toString(); // masukan data data tersebut kedalam statid variabel untuk di saveinstance agar tidak hilang
+            ADDRESS_PLACE = place.getAddress().toString();// masukan data data tersebut kedalam statid variabel untuk di saveinstance agar tidak hilang
+            IMG_PLACE = setTypeLocation(place);// masukan data data tersebut kedalam statid variabel untuk di saveinstance agar tidak hilang
             myAnimImageView.setImageResource(IMG_PLACE);
         }
         else
         {
-            textLocation.setText("Location Not Selected");
+            textLocation.setText("Location Not Selected");//jika tidak dipilih maka update text view menjadi text berikut
         }
     }
 
@@ -264,37 +269,26 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     }
 
     @Override
-    public void onTaskCompleted(String result) throws SecurityException{
-        //textLocation.setText(result);
-        final String alamat = result;
-    //    if (mytrackingLoc)
-    //    {
-            PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi.getCurrentPlace(googleApiClient, null);
+    public void onTaskCompleted(String result) throws SecurityException{ //digunakan saat tracking lokasi saat mendapatkan koordinat terbaru merubah menjadi alamat, diberikan throws karena saat mrncari nama place terdekat harus mengagkses API google yang membutuhkan test koneksi
+            PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi.getCurrentPlace(googleApiClient, null); //mendapatkan nama tempat dari curent place saat ini
             placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
                 @Override
                 public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
                     for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
-                        textLocation.setText(getString(R.string.address_text,placeLikelihood.getPlace().getName(),placeLikelihood.getPlace().getAddress(), System.currentTimeMillis()));
-                        NAME_PLACE = placeLikelihood.getPlace().getName().toString();
-                        ADDRESS_PLACE = placeLikelihood.getPlace().getAddress().toString();
-                        IMG_PLACE = setTypeLocation(placeLikelihood.getPlace());
+                        textLocation.setText(getString(R.string.address_text,
+                                placeLikelihood.getPlace().getName(),
+                                placeLikelihood.getPlace().getAddress(),
+                                System.currentTimeMillis()));//mengupdate text nama lokasi dengan data yang didapatkan
+                        NAME_PLACE = placeLikelihood.getPlace().getName().toString();// masukan data data tersebut kedalam statid variabel untuk di saveinstance agar tidak hilang
+                        ADDRESS_PLACE = placeLikelihood.getPlace().getAddress().toString();// masukan data data tersebut kedalam statid variabel untuk di saveinstance agar tidak hilang
+                        IMG_PLACE = setTypeLocation(placeLikelihood.getPlace());// masukan data data tersebut kedalam statid variabel untuk di saveinstance agar tidak hilang
                         myAnimImageView.setImageResource(IMG_PLACE);
                     }
                     placeLikelihoods.release();
                 }
             });
 
-            //textLocation.setText(getString(R.string.address_text,result,result,System.currentTimeMillis()));
-        //  }
     }
-
-
-
-//    @Override
-//    public void onTaskCompleted(String result){
-//        //textLocation.setText(result);
-//            textLocation.setText(getString(R.string.address_text,result,result, System.currentTimeMillis()));
-//    }
 
     private LocationRequest getLocation()
     {
@@ -306,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
     }
 
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) { //overide methode dari GoogleAPI client untuk memeriksa koneksi dari API yang dugunakan
         Log.e("CON_API", "Google Places API connection failed with error code: "
                 + connectionResult.getErrorCode());
 
@@ -316,10 +310,10 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 Toast.LENGTH_LONG).show();
     }
 
-    private int setTypeLocation(Place currentPlace)
+    private int setTypeLocation(Place currentPlace)//methode yang digunakan untuk mendapatkan gambar sesuai dengan tempat yang dipilih
     {
-        int drawId = -1;
-        for (Integer placeType : currentPlace.getPlaceTypes())
+        int drawId = -1;// set aawal dari variabel
+        for (Integer placeType : currentPlace.getPlaceTypes())//melakukan perulangan untuk mendapatkan jenis tempat yang sesuai dari current place
         {
             switch (placeType)
             {
@@ -335,14 +329,24 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 case  Place.TYPE_MOVIE_THEATER:
                     drawId= R.drawable.cinema;
                     break;
+
+                case  Place.TYPE_CEMETERY:
+                    drawId= R.drawable.tombstone;
+                    break;
+                case  Place.TYPE_NIGHT_CLUB:
+                    drawId= R.drawable.haram;
+                    break;
+                case  Place.TYPE_MOSQUE:
+                    drawId= R.drawable.mosque;
+                    break;
             }
             if(drawId<0)
             {
-                drawId=R.drawable.notfound;
+                drawId=R.drawable.notfound; //jika tidak ditemukan maka variabel akan diganti dengan gambar not found
             }
         }
 
-        return drawId;
+        return drawId; //mengembalikan nilai dari hasil seleksi kondisi untuk diakses drawabale
     }
 }
 

@@ -21,7 +21,7 @@
         </activity>
         <meta-data
             android:name = "com.google.android.geo.API_KEY"
-            android:value = "AIzaSyAIOtdbmexRP--kmMPqKKjmIynWKv9WIPk" />
+            android:value = "AIzaSyAIOtdbmexRP--kmMPqKKjmIynWKv9WIPk" /><!-- di deklarasikan untuk memberikan APIKEY dari Google agar aplikasi mendapatkan hak akses dari google untuk mrnggunakan API Tersebut-->
     </application>
 
 </manifest>
