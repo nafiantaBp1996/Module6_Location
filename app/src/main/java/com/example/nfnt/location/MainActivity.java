@@ -345,7 +345,6 @@ public class MainActivity extends AppCompatActivity implements GetAddress.onTask
                 drawId=R.drawable.notfound; //jika tidak ditemukan maka variabel akan diganti dengan gambar not found
             }
         }
-
         return drawId; //mengembalikan nilai dari hasil seleksi kondisi untuk diakses drawabale
     }
 }
